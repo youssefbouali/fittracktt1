@@ -222,6 +222,11 @@ export const AuthService = {
 
   async getAccessToken(): Promise<string | null> {
     try {
+      const storedToken = localStorage.getItem('auth_token');
+      if (storedToken) {
+        return storedToken;
+      }
+
       const cognitoUser = getCurrentCognitoUser();
       if (!cognitoUser) return null;
 

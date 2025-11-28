@@ -2,12 +2,12 @@ name: Build & Deploy FitTrack
 
 on:
   push:
-    branches: ["deploy"]
+    branches: ["main"]
 
 env:
   AWS_REGION: us-east-1
-  EB_APP_NAME: fittrack-prod
-  EB_ENV_NAME: fittrack-prod-env-new3
+  EB_APP_NAME: fittrack-prod4
+  EB_ENV_NAME: fittrack-prod4-env
   S3_BUCKET: fittrack-frontend-dev-r6modxd4
   CLOUDFRONT_DISTRIBUTION_ID: E238AHI7HD5EMF
 
@@ -36,9 +36,9 @@ jobs:
       - name: Install backend dependencies
         run: |
           npm install --legacy-peer-deps
-          cd backend
-          npm install --legacy-peer-deps
-          cd ..
+        #  cd backend
+        #  npm install --legacy-peer-deps
+        #  cd ..
 
       # -------------------------
       # Prisma migration & generation
@@ -76,6 +76,20 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       # -------------------------
+      # Deploy frontend to S3
+      # -------------------------
+      - name: Deploy Frontend to S3
+        run: |
+          cd frontend
+          npm install --legacy-peer-deps
+          export AWS_S3_BUCKET=${{ env.S3_BUCKET }}
+          export AWS_CLOUDFRONT_DISTRIBUTION_ID=${{ env.CLOUDFRONT_DISTRIBUTION_ID }}
+          npm run deploy:s3
+          npm run deploy:invalidate
+          cd ..
+
+
+      # -------------------------
       # Initialize Elastic Beanstalk app (only once)
       # -------------------------
       - name: Initialize Elastic Beanstalk
@@ -91,17 +105,4 @@ jobs:
         run: |
           cd backend
           eb deploy ${{ env.EB_ENV_NAME }}
-          cd ..
-
-      # -------------------------
-      # Deploy frontend to S3
-      # -------------------------
-      - name: Deploy Frontend to S3
-        run: |
-          cd frontend
-          npm install --legacy-peer-deps
-          export AWS_S3_BUCKET=${{ env.S3_BUCKET }}
-          export AWS_CLOUDFRONT_DISTRIBUTION_ID=${{ env.CLOUDFRONT_DISTRIBUTION_ID }}
-          npm run deploy:s3
-          npm run deploy:invalidate
           cd ..
