@@ -20,17 +20,28 @@ export class ActivitiesController {
   @UseGuards(AuthGuard('cognito'))
   async createActivity(@Request() req, @Body() body: any) {
     try {
+      if (!req.user?.id) {
+        throw new BadRequestException('User ID not found in request');
+      }
+
+      if (!body.type || !body.date || body.duration === undefined) {
+        throw new BadRequestException('Missing required fields: type, date, duration');
+      }
+
       const activity = await this.activitiesService.createActivity({
         type: body.type,
         date: body.date,
-        duration: body.duration,
-        distance: body.distance || 0,
+        duration: parseInt(body.duration, 10),
+        distance: body.distance ? parseFloat(body.distance) : 0,
         photo: body.photo || body.photoUrl,
         ownerId: req.user.id,
       });
       return activity;
     } catch (error) {
-      throw new BadRequestException('Failed to create activity');
+      console.error('Create activity error:', error);
+      throw new BadRequestException(
+        error instanceof Error ? error.message : 'Failed to create activity',
+      );
     }
   }
 
