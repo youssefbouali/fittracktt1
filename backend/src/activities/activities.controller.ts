@@ -37,13 +37,23 @@ export class ActivitiesController {
         throw new BadRequestException('Duration is required');
       }
 
+      const userId = req.user.id;
+      const userEmail = req.user.email;
+
+      // Ensure user exists in database
+      let user = await this.usersService.findUserById(userId);
+      if (!user) {
+        // Auto-create user from Cognito data
+        user = await this.usersService.createUser(userEmail);
+      }
+
       const activity = await this.activitiesService.createActivity({
         type: body.type,
         date: body.date,
         duration: Number(body.duration),
         distance: body.distance ? Number(body.distance) : 0,
         photo: body.photo || body.photoUrl,
-        ownerId: req.user.id,
+        ownerId: userId,
       });
       return activity;
     } catch (error) {
