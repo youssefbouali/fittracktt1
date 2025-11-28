@@ -1,7 +1,8 @@
-import { useState, ChangeEvent, FormEvent } from 'react';
+import { useState, ChangeEvent, FormEvent, useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { createActivity } from '../store/slices/activitiesSlice';
-import { S3Service } from '../services/s3Service';
+import { S3Service, initializeS3 } from '../services/s3Service';
+import { AuthService } from '../services/authService';
 
 export default function ActivityForm() {
   const dispatch = useAppDispatch();
