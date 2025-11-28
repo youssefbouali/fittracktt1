@@ -8,40 +8,46 @@ import {
   UseGuards,
   Request,
   BadRequestException,
+  Logger,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ActivitiesService } from './activities.service';
 
 @Controller('api/activities')
 export class ActivitiesController {
+  private readonly logger = new Logger(ActivitiesController.name);
+
   constructor(private activitiesService: ActivitiesService) {}
 
   @Post()
   @UseGuards(AuthGuard('cognito'))
   async createActivity(@Request() req, @Body() body: any) {
     try {
-      if (!req.user?.id) {
-        throw new BadRequestException('User ID not found in request');
+      if (!body.type) {
+        throw new BadRequestException('Type is required');
       }
-
-      if (!body.type || !body.date || body.duration === undefined) {
-        throw new BadRequestException('Missing required fields: type, date, duration');
+      if (!body.date) {
+        throw new BadRequestException('Date is required');
+      }
+      if (body.duration === undefined || body.duration === null) {
+        throw new BadRequestException('Duration is required');
       }
 
       const activity = await this.activitiesService.createActivity({
         type: body.type,
         date: body.date,
-        duration: parseInt(body.duration, 10),
-        distance: body.distance ? parseFloat(body.distance) : 0,
+        duration: Number(body.duration),
+        distance: body.distance ? Number(body.distance) : 0,
         photo: body.photo || body.photoUrl,
         ownerId: req.user.id,
       });
       return activity;
     } catch (error) {
-      console.error('Create activity error:', error);
-      throw new BadRequestException(
-        error instanceof Error ? error.message : 'Failed to create activity',
-      );
+      this.logger.error(`Failed to create activity: ${error.message}`, error.stack);
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new BadRequestException(`Failed to create activity: ${error.message}`);
     }
   }
 
