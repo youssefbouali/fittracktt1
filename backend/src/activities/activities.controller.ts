@@ -12,12 +12,16 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ActivitiesService } from './activities.service';
+import { UsersService } from '../users/users.service';
 
 @Controller('api/activities')
 export class ActivitiesController {
   private readonly logger = new Logger(ActivitiesController.name);
 
-  constructor(private activitiesService: ActivitiesService) {}
+  constructor(
+    private activitiesService: ActivitiesService,
+    private usersService: UsersService,
+  ) {}
 
   @Post()
   @UseGuards(AuthGuard('cognito'))
