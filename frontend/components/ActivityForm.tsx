@@ -36,6 +36,23 @@ export default function ActivityForm() {
     reader.readAsDataURL(file);
   };
 
+  useEffect(() => {
+    const initS3 = async () => {
+      try {
+        const idToken = await AuthService.getIdToken();
+        if (idToken) {
+          initializeS3(idToken);
+        }
+      } catch (error) {
+        console.error('Failed to initialize S3:', error);
+      }
+    };
+
+    if (user) {
+      initS3();
+    }
+  }, [user]);
+
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLocalError('');
