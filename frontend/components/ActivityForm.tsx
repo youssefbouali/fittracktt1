@@ -1,7 +1,8 @@
-import { useState, ChangeEvent, FormEvent } from 'react';
+import { useState, ChangeEvent, FormEvent, useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { createActivity } from '../store/slices/activitiesSlice';
-import { S3Service } from '../services/s3Service';
+import { S3Service, initializeS3 } from '../services/s3Service';
+import { AuthService } from '../services/authService';
 
 export default function ActivityForm() {
   const dispatch = useAppDispatch();
@@ -34,6 +35,23 @@ export default function ActivityForm() {
     };
     reader.readAsDataURL(file);
   };
+
+  useEffect(() => {
+    const initS3 = async () => {
+      try {
+        const idToken = await AuthService.getIdToken();
+        if (idToken) {
+          initializeS3(idToken);
+        }
+      } catch (error) {
+        console.error('Failed to initialize S3:', error);
+      }
+    };
+
+    if (user) {
+      initS3();
+    }
+  }, [user]);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();

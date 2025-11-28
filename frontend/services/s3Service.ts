@@ -1,12 +1,30 @@
 import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { CognitoIdentityClient, GetCredentialsForIdentityCommand, GetIdCommand } from '@aws-sdk/client-cognito-identity';
+import { fromCognitoIdentityPool } from '@aws-sdk/credential-provider-cognito-identity';
 import { awsConfig } from '../config/aws';
 
 let s3Client: S3Client;
 
-export const initializeS3 = () => {
+export const initializeS3 = (idToken?: string) => {
+  if (!awsConfig.identityPoolId) {
+    console.error('Identity Pool ID is not configured');
+    return;
+  }
+
+  const credentialProvider = fromCognitoIdentityPool({
+    client: new CognitoIdentityClient({ region: awsConfig.region }),
+    identityPoolId: awsConfig.identityPoolId,
+    logins: idToken
+      ? {
+          [`cognito-idp.${awsConfig.region}.amazonaws.com/${awsConfig.userPoolId}`]: idToken,
+        }
+      : undefined,
+  });
+
   s3Client = new S3Client({
     region: awsConfig.region,
+    credentials: credentialProvider,
   });
 };
 
