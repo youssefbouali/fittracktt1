@@ -1,6 +1,5 @@
 import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import { CognitoIdentityClient } from '@aws-sdk/client-cognito-identity';
 import { fromCognitoIdentityPool } from '@aws-sdk/credential-provider-cognito-identity';
 import { awsConfig } from '../config/aws';
 import { AuthService } from './authService';
@@ -19,7 +18,7 @@ export const initializeS3 = (idToken?: string) => {
   }
 
   const credentialProvider = fromCognitoIdentityPool({
-    client: new CognitoIdentityClient({ region: awsConfig.region }),
+    clientConfig: { region: awsConfig.region },
     identityPoolId: awsConfig.identityPoolId,
     logins: {
       [`cognito-idp.${awsConfig.region}.amazonaws.com/${awsConfig.userPoolId}`]: idToken,

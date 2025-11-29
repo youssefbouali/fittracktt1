@@ -1,5 +1,4 @@
 import { SecretsManagerClient, GetSecretValueCommand } from '@aws-sdk/client-secrets-manager';
-import { CognitoIdentityClient } from '@aws-sdk/client-cognito-identity';
 import { fromCognitoIdentityPool } from '@aws-sdk/credential-providers';
 import { AuthService } from '../services/authService';
 
@@ -43,7 +42,7 @@ export const loadAwsConfigFromSecrets = async (secretId: string): Promise<void> 
     if (!awsConfig.identityPoolId || !awsConfig.userPoolId || !awsConfig.region) return;
 
     const credentials = fromCognitoIdentityPool({
-      client: new CognitoIdentityClient({ region: awsConfig.region }),
+      clientConfig: { region: awsConfig.region },
       identityPoolId: awsConfig.identityPoolId,
       logins: {
         [`cognito-idp.${awsConfig.region}.amazonaws.com/${awsConfig.userPoolId}`]: idToken,
