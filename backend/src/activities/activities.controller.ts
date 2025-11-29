@@ -69,6 +69,17 @@ export class ActivitiesController {
     return this.activitiesService.getAllActivities();
   }
 
+  @Get('me')
+  @UseGuards(AuthGuard('cognito'))
+  async getMyActivities(@Request() req) {
+    const userEmail = req.user.email;
+    const user = await this.usersService.findUserByEmail(userEmail);
+    if (!user) {
+      return [];
+    }
+    return this.activitiesService.getActivitiesByUser(user.id);
+  }
+
   @Get('user/:userId')
   async getActivitiesByUser(@Param('userId') userId: string) {
     return this.activitiesService.getActivitiesByUser(userId);
