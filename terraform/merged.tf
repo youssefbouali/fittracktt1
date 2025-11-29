@@ -264,19 +264,6 @@ resource "aws_iam_role_policy" "cognito_authenticated_s3" {
   })
 }
 
-resource "aws_iam_role_policy" "cognito_authenticated_secrets" {
-  name = "${var.app_name}-${var.environment}-cognito-secrets-policy"
-  role = aws_iam_role.cognito_authenticated.id
-  policy = jsonencode({
-    Version = "2012-10-17",
-    Statement = [{
-      Effect   = "Allow",
-      Action   = ["secretsmanager:GetSecretValue"],
-      Resource = aws_secretsmanager_secret.frontend_config.arn
-    }]
-  })
-}
-
 # Attach IAM roles to the Cognito Identity Pool
 resource "aws_cognito_identity_pool_roles_attachment" "fittrack" {
   identity_pool_id = aws_cognito_identity_pool.fittrack.id
@@ -462,11 +449,6 @@ resource "aws_elastic_beanstalk_environment" "fittrack" {
     namespace = "aws:elasticbeanstalk:application:environment"
     name      = "AWS_REGION"
     value     = var.aws_region
-  }
-  setting {
-    namespace = "aws:elasticbeanstalk:application:environment"
-    name      = "FRONTEND_CONFIG_SECRET_NAME"
-    value     = aws_secretsmanager_secret.frontend_config.name
   }
   setting {
     namespace = "aws:elasticbeanstalk:application:environment"
@@ -770,25 +752,6 @@ output "fittrack_db_secret_arn" {
   value       = aws_secretsmanager_secret.fittrack_db.arn
   description = "ARN of the DB Secret in Secrets Manager"
   sensitive   = true
-}
-
-resource "aws_secretsmanager_secret" "frontend_config" {
-  name        = "${var.app_name}-${var.environment}-frontend-config"
-  description = "Frontend runtime configuration"
-  tags        = var.tags
-}
-
-resource "aws_secretsmanager_secret_version" "frontend_config_version" {
-  secret_id     = aws_secretsmanager_secret.frontend_config.id
-  secret_string = jsonencode({
-    region            = var.aws_region
-    userPoolId        = aws_cognito_user_pool.fittrack.id
-    clientId          = aws_cognito_user_pool_client.fittrack_web.id
-    identityPoolId    = aws_cognito_identity_pool.fittrack.id
-    s3Bucket          = aws_s3_bucket.activity_photos.bucket
-    cloudFrontDomain  = aws_cloudfront_distribution.frontend.domain_name
-    apiEndpoint       = aws_elastic_beanstalk_environment.fittrack.endpoint_url
-  })
 }
 
 

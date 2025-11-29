@@ -9,9 +9,4 @@ export class AppController {
   getHealth() {
     return this.appService.getHealth();
   }
-
-  @Get('api/config')
-  getConfig() {
-    return this.appService.getFrontendConfig();
-  }
 }
