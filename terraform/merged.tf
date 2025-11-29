@@ -162,7 +162,13 @@ resource "aws_s3_bucket_cors_configuration" "activity_photos" {
     allowed_headers = ["*"]
     allowed_methods = ["GET", "PUT", "POST", "DELETE"]
     allowed_origins = concat(
-      ["http://localhost:3000", "http://localhost:3001"],
+      [
+        "http://localhost:3000",
+        "http://localhost:3001",
+        "http://${aws_s3_bucket.frontend.bucket}.s3-website-${var.aws_region}.amazonaws.com",
+        "http://${aws_s3_bucket.frontend.bucket}.s3.${var.aws_region}.amazonaws.com",
+        "http://${aws_s3_bucket.frontend.bucket}.s3-${var.aws_region}.amazonaws.com"
+      ],
       var.frontend_domain != "" ? ["https://${var.frontend_domain}"] : []
     )
     expose_headers  = ["ETag"]
