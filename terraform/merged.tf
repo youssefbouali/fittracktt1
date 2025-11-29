@@ -220,7 +220,7 @@ resource "aws_cognito_identity_pool" "fittrack" {
   allow_unauthenticated_identities = false
   cognito_identity_providers {
     client_id               = aws_cognito_user_pool_client.fittrack_web.id
-    provider_name           = aws_cognito_user_pool.fittrack.endpoint
+    provider_name           = "cognito-idp.${var.aws_region}.amazonaws.com/${aws_cognito_user_pool.fittrack.id}"
     server_side_token_check = false
   }
   depends_on = [aws_cognito_user_pool_client.fittrack_web]
@@ -256,6 +256,14 @@ resource "aws_iam_role_policy" "cognito_authenticated_s3" {
       Resource = "${aws_s3_bucket.activity_photos.arn}/activities/*"
     }]
   })
+}
+
+# Attach IAM roles to the Cognito Identity Pool
+resource "aws_cognito_identity_pool_roles_attachment" "fittrack" {
+  identity_pool_id = aws_cognito_identity_pool.fittrack.id
+  roles = {
+    authenticated = aws_iam_role.cognito_authenticated.arn
+  }
 }
 
 # ========================================

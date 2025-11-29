@@ -15,6 +15,7 @@ export const validateAwsConfig = () => {
     'region',
     'userPoolId',
     'clientId',
+    'identityPoolId',
     's3Bucket',
   ];
 
