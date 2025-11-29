@@ -248,6 +248,11 @@ export const AuthService = {
 
   async getIdToken(): Promise<string | null> {
     try {
+      const storedIdToken = localStorage.getItem('id_token');
+      if (storedIdToken) {
+        return storedIdToken;
+      }
+
       const cognitoUser = getCurrentCognitoUser();
       if (!cognitoUser) return null;
 
