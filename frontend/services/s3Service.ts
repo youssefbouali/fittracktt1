@@ -1,8 +1,9 @@
 import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-import { CognitoIdentityClient, GetCredentialsForIdentityCommand, GetIdCommand } from '@aws-sdk/client-cognito-identity';
+import { CognitoIdentityClient } from '@aws-sdk/client-cognito-identity';
 import { fromCognitoIdentityPool } from '@aws-sdk/credential-provider-cognito-identity';
 import { awsConfig } from '../config/aws';
+import { AuthService } from './authService';
 
 let s3Client: S3Client;
 
@@ -12,14 +13,17 @@ export const initializeS3 = (idToken?: string) => {
     return;
   }
 
+  if (!idToken) {
+    console.error('Cognito idToken is required to initialize S3 for authenticated identity');
+    return;
+  }
+
   const credentialProvider = fromCognitoIdentityPool({
     client: new CognitoIdentityClient({ region: awsConfig.region }),
     identityPoolId: awsConfig.identityPoolId,
-    logins: idToken
-      ? {
-          [`cognito-idp.${awsConfig.region}.amazonaws.com/${awsConfig.userPoolId}`]: idToken,
-        }
-      : undefined,
+    logins: {
+      [`cognito-idp.${awsConfig.region}.amazonaws.com/${awsConfig.userPoolId}`]: idToken,
+    },
   });
 
   s3Client = new S3Client({
@@ -28,9 +32,13 @@ export const initializeS3 = (idToken?: string) => {
   });
 };
 
-const getS3Client = (): S3Client => {
+const getS3Client = async (): Promise<S3Client> => {
   if (!s3Client) {
-    initializeS3();
+    const idToken = await AuthService.getIdToken();
+    if (!idToken) {
+      throw new Error('NotAuthorizedException: Authenticated Cognito idToken required for S3');
+    }
+    initializeS3(idToken);
   }
   return s3Client;
 };
@@ -38,7 +46,7 @@ const getS3Client = (): S3Client => {
 export const S3Service = {
   async uploadFile(file: File, fileName: string): Promise<{ key: string; url: string }> {
     try {
-      const client = getS3Client();
+      const client = await getS3Client();
       const fileArrayBuffer = await file.arrayBuffer();
 
       const command = new PutObjectCommand({
@@ -64,7 +72,7 @@ export const S3Service = {
 
   async getFileUrl(key: string, expiresIn: number = 3600): Promise<string> {
     try {
-      const client = getS3Client();
+      const client = await getS3Client();
       const command = new GetObjectCommand({
         Bucket: awsConfig.s3Bucket,
         Key: key,
@@ -80,7 +88,7 @@ export const S3Service = {
 
   async deleteFile(key: string): Promise<void> {
     try {
-      const client = getS3Client();
+      const client = await getS3Client();
       const command = new DeleteObjectCommand({
         Bucket: awsConfig.s3Bucket,
         Key: key,

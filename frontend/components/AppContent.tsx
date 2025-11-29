@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { awsConfig, validateAwsConfig } from '../config/aws';
 import { AuthService, initializeCognito } from '../services/authService';
-import { initializeS3 } from '../services/s3Service';
 
 export default function AppContent({ Component, pageProps }: any) {
   const [ready, setReady] = useState(false);
@@ -15,7 +14,6 @@ export default function AppContent({ Component, pageProps }: any) {
     }
 
     initializeCognito();
-    initializeS3();
 
     setReady(true);
 
