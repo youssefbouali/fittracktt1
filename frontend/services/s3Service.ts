@@ -54,7 +54,6 @@ export const S3Service = {
         Key: fileName,
         Body: new Uint8Array(fileArrayBuffer),
         ContentType: file.type,
-        ACL: 'public-read',
       });
 
       await client.send(command);
