@@ -1,7 +1,9 @@
 import { awsConfig } from '../config/aws';
 import { AuthService } from '../services/authService';
 
-const API_URL = awsConfig.apiEndpoint;
+function getApiBase() {
+  return awsConfig.apiEndpoint || '';
+}
 
 interface RequestOptions {
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
@@ -27,7 +29,8 @@ async function getAuthHeader(): Promise<Record<string, string>> {
 }
 
 async function apiCall(endpoint: string, options: RequestOptions = {}) {
-  const url = `${API_URL}${endpoint}`;
+  const base = getApiBase();
+  const url = `${base}${endpoint}`;
   const authHeaders = await getAuthHeader();
 
   const headers: Record<string, string> = {
@@ -78,5 +81,6 @@ export const api = {
 
   // Health check
   health: () => apiCall('/api/health'),
+  getFrontendConfig: () => apiCall('/api/config'),
 };
 

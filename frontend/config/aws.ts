@@ -6,6 +6,7 @@ export const awsConfig = {
   s3Bucket: process.env.NEXT_PUBLIC_S3_BUCKET || '',
   cloudFrontDomain: process.env.NEXT_PUBLIC_CLOUDFRONT_DOMAIN || '',
   apiEndpoint: process.env.NEXT_PUBLIC_API_ENDPOINT || 'http://localhost:5000',
+  frontendConfigSecretName: process.env.NEXT_PUBLIC_FRONTEND_CONFIG_SECRET_NAME || '',
 };
 
 console.log("AWS Config:", awsConfig);
